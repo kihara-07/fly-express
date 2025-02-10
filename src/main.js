@@ -1,6 +1,5 @@
 import "./style.css";
 import "leaflet/dist/leaflet.css";
-
 import L from "leaflet";
 
 // マップの初期化
@@ -13,9 +12,23 @@ L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
 }).addTo(map);
 
+// ポイントのリスト
+let points = [];
+
+// マップをクリックしてポイントを追加
+map.on("click", (e) => {
+  const { lat, lng } = e.latlng;
+  const marker = L.marker([lat, lng]).addTo(map);
+  points.push([lat, lng]);
+
+  // ポイントが2つ以上なら線を引く
+  if (points.length > 1) {
+    L.polyline(points, { color: "red", weight: 3 }).addTo(map);
+  }
+});
+
 // Overpass APIを利用して道路データを取得
 const fetchRoadData = () => {
-  // Overpass APIクエリ: 特定のエリア内の道路データを取得
   const bbox = map.getBounds(); // 現在のマップの表示範囲
   const query = `
     [out:json];
@@ -23,20 +36,14 @@ const fetchRoadData = () => {
     out geom;
   `;
 
-  const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(
-    query
-  )}`;
+  const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
 
   fetch(url)
     .then((response) => response.json())
     .then((data) => {
-      // GeoJSON形式で道路を描画
       data.elements.forEach((element) => {
         if (element.type === "way" && element.geometry) {
-          const coordinates = element.geometry.map((point) => [
-            point.lat,
-            point.lon,
-          ]);
+          const coordinates = element.geometry.map((point) => [point.lat, point.lon]);
           L.polyline(coordinates, {
             color: "blue",
             weight: 3,

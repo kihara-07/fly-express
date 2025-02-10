@@ -16,46 +16,42 @@ L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
 let points = [];
 
 // マップをクリックしてポイントを追加
-map.on("click", (e) => {
+map.on("click", async (e) => {
   const { lat, lng } = e.latlng;
   const marker = L.marker([lat, lng]).addTo(map);
   points.push([lat, lng]);
 
   // ポイントが2つ以上なら線を引く
   if (points.length > 1) {
-    L.polyline(points, { color: "red", weight: 3 }).addTo(map);
+    const prevPoint = points[points.length - 2];
+    L.polyline([prevPoint, [lat, lng]], { color: "red", weight: 3 }).addTo(map);
+    
+    // 2点間の道路データを取得し描画
+    await fetchRoadData(prevPoint, [lat, lng]);
   }
 });
 
-// Overpass APIを利用して道路データを取得
-const fetchRoadData = () => {
-  const bbox = map.getBounds(); // 現在のマップの表示範囲
+// Overpass APIを利用して2点間の道路データを取得
+const fetchRoadData = async (point1, point2) => {
   const query = `
     [out:json];
-    way["highway"]( ${bbox.getSouth()}, ${bbox.getWest()}, ${bbox.getNorth()}, ${bbox.getEast()} );
+    way["highway"](around:50, ${point1[0]}, ${point1[1]});
+    way["highway"](around:50, ${point2[0]}, ${point2[1]});
     out geom;
   `;
 
   const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
 
-  fetch(url)
-    .then((response) => response.json())
-    .then((data) => {
-      data.elements.forEach((element) => {
-        if (element.type === "way" && element.geometry) {
-          const coordinates = element.geometry.map((point) => [point.lat, point.lon]);
-          L.polyline(coordinates, {
-            color: "blue",
-            weight: 3,
-          }).addTo(map);
-        }
-      });
-    })
-    .catch((error) => console.error("エラーが発生しました:", error));
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    data.elements.forEach((element) => {
+      if (element.type === "way" && element.geometry) {
+        const coordinates = element.geometry.map((point) => [point.lat, point.lon]);
+        L.polyline(coordinates, { color: "blue", weight: 3 }).addTo(map);
+      }
+    });
+  } catch (error) {
+    console.error("エラーが発生しました:", error);
+  }
 };
-
-// マップの移動終了時に道路データを取得
-map.on("moveend", fetchRoadData);
-
-// 初回ロード時に道路データを取得
-fetchRoadData();

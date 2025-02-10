@@ -26,36 +26,37 @@ const isOnRoad = async (lat, lng) => {
   try {
     const response = await fetch(url);
     const data = await response.json();
-    return data.elements.length > 0; // 道路上なら true
+    return data.elements.length > 0 ? data.elements[0] : null; // 最も近い道路を取得
   } catch (error) {
     console.error("エラーが発生しました:", error);
-    return false;
+    return null;
   }
 };
 
 // マップをクリックしてポイントを追加
 map.on("click", async (e) => {
   const { lat, lng } = e.latlng;
-  if (await isOnRoad(lat, lng)) {
+  const road = await isOnRoad(lat, lng);
+  if (road) {
     const marker = L.marker([lat, lng]).addTo(map);
-    points.push([lat, lng]);
+    points.push({ lat, lng, road });
 
-    // ポイントが偶数個なら線を引く
+    // ポイントが偶数個なら2点間の道路を描画
     if (points.length >= 2 && points.length % 2 === 0) {
       const prevPoint = points[points.length - 2];
-      await fetchRoadData(prevPoint, [lat, lng]);
+      await fetchRoadData(prevPoint, { lat, lng, road });
     }
   } else {
     console.log("道路上のポイントを選択してください。");
   }
 });
 
-// Overpass APIを利用して2点間の道路データを取得
+// Overpass APIを利用して2点間の最短道路データを取得
 const fetchRoadData = async (point1, point2) => {
   const query = `
     [out:json];
-    way["highway"](around:5, ${point1[0]}, ${point1[1]});
-    way["highway"](around:5, ${point2[0]}, ${point2[1]});
+    way["highway"](${point1.road.id});
+    way["highway"](${point2.road.id});
     out geom;
   `;
   const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;

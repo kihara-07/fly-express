@@ -15,19 +15,38 @@ L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
 // ポイントのリスト
 let points = [];
 
+// クリックされた地点が道路上かを判定
+const isOnRoad = async (lat, lng) => {
+  const query = `
+    [out:json];
+    way["highway"](around:10, ${lat}, ${lng});
+    out geom;
+  `;
+  const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    return data.elements.length > 0; // 道路上なら true
+  } catch (error) {
+    console.error("エラーが発生しました:", error);
+    return false;
+  }
+};
+
 // マップをクリックしてポイントを追加
 map.on("click", async (e) => {
   const { lat, lng } = e.latlng;
-  const marker = L.marker([lat, lng]).addTo(map);
-  points.push([lat, lng]);
+  if (await isOnRoad(lat, lng)) {
+    const marker = L.marker([lat, lng]).addTo(map);
+    points.push([lat, lng]);
 
-  // ポイントが2つ以上なら線を引く
-  if (points.length > 1) {
-    const prevPoint = points[points.length - 2];
-    L.polyline([prevPoint, [lat, lng]], { color: "red", weight: 3 }).addTo(map);
-    
-    // 2点間の道路データを取得し描画
-    await fetchRoadData(prevPoint, [lat, lng]);
+    // ポイントが偶数個なら線を引く
+    if (points.length >= 2 && points.length % 2 === 0) {
+      const prevPoint = points[points.length - 2];
+      await fetchRoadData(prevPoint, [lat, lng]);
+    }
+  } else {
+    console.log("道路上のポイントを選択してください。");
   }
 });
 
@@ -39,9 +58,7 @@ const fetchRoadData = async (point1, point2) => {
     way["highway"](around:50, ${point2[0]}, ${point2[1]});
     out geom;
   `;
-
   const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
-
   try {
     const response = await fetch(url);
     const data = await response.json();

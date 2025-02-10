@@ -45,6 +45,7 @@ map.on("click", async (e) => {
     if (points.length >= 2 && points.length % 2 === 0) {
       const prevPoint = points[points.length - 2];
       await fetchRoadData(prevPoint, { lat, lng, road });
+      showSurvey();
     }
   } else {
     console.log("道路上のポイントを選択してください。");
@@ -72,4 +73,24 @@ const fetchRoadData = async (point1, point2) => {
   } catch (error) {
     console.error("エラーが発生しました:", error);
   }
+};
+
+// 3段階評価のアンケートを表示
+const showSurvey = () => {
+  const surveyContainer = document.createElement("div");
+  surveyContainer.innerHTML = `
+    <div style="position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:white; padding:10px; border:1px solid #ccc; border-radius:5px;">
+      <p>この経路はどうでしたか？</p>
+      <button onclick="submitSurvey(1)">悪い</button>
+      <button onclick="submitSurvey(2)">普通</button>
+      <button onclick="submitSurvey(3)">良い</button>
+    </div>
+  `;
+  document.body.appendChild(surveyContainer);
+};
+
+// アンケートの回答を処理
+const submitSurvey = (rating) => {
+  console.log("選択された評価:", rating);
+  document.body.querySelector("div").remove();
 };

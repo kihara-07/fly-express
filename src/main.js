@@ -78,13 +78,21 @@ const fetchRoadData = async (point1, point2) => {
 // 3段階評価のアンケートを表示
 const showSurvey = () => {
   const surveyContainer = document.createElement("div");
+  surveyContainer.style.position = "fixed";
+  surveyContainer.style.bottom = "20px";
+  surveyContainer.style.left = "50%";
+  surveyContainer.style.transform = "translateX(-50%)";
+  surveyContainer.style.background = "white";
+  surveyContainer.style.padding = "10px";
+  surveyContainer.style.border = "1px solid #ccc";
+  surveyContainer.style.borderRadius = "5px";
+  surveyContainer.style.zIndex = "1000";
+
   surveyContainer.innerHTML = `
-    <div style="position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:white; padding:10px; border:1px solid #ccc; border-radius:5px;">
-      <p>この経路はどうでしたか？</p>
-      <button onclick="submitSurvey(1)">悪い</button>
-      <button onclick="submitSurvey(2)">普通</button>
-      <button onclick="submitSurvey(3)">良い</button>
-    </div>
+    <p>この経路はどうでしたか？</p>
+    <button onclick="submitSurvey(1)">悪い</button>
+    <button onclick="submitSurvey(2)">普通</button>
+    <button onclick="submitSurvey(3)">良い</button>
   `;
   document.body.appendChild(surveyContainer);
 };
@@ -92,5 +100,5 @@ const showSurvey = () => {
 // アンケートの回答を処理
 const submitSurvey = (rating) => {
   console.log("選択された評価:", rating);
-  document.body.querySelector("div").remove();
+  document.body.querySelector("div[style*='fixed']").remove();
 };

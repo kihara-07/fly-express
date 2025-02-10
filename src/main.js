@@ -54,8 +54,8 @@ map.on("click", async (e) => {
 const fetchRoadData = async (point1, point2) => {
   const query = `
     [out:json];
-    way["highway"](around:50, ${point1[0]}, ${point1[1]});
-    way["highway"](around:50, ${point2[0]}, ${point2[1]});
+    way["highway"](around:5, ${point1[0]}, ${point1[1]});
+    way["highway"](around:5, ${point2[0]}, ${point2[1]});
     out geom;
   `;
   const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;

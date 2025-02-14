@@ -2,6 +2,14 @@ import "./style.css";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
+// カスタムマーカーアイコンの設定
+const customIcon = L.icon({
+  iconUrl: "https://leafletjs.com/examples/custom-icons/leaf-red.png",
+  iconSize: [38, 38],
+  iconAnchor: [19, 38],
+  popupAnchor: [0, -38]
+});
+
 // マップの初期化
 const map = L.map("map").setView([33.18, 131.62], 16);
 
@@ -39,7 +47,7 @@ map.on("click", async (e) => {
   const { lat, lng } = e.latlng;
   const road = await isOnRoad(lat, lng);
   if (road) {
-    const marker = L.marker([lat, lng]).addTo(map);
+    const marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
     points.push({ lat, lng, road });
 
     // ポイントが偶数個なら2点間の道路を描画

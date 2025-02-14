@@ -4,11 +4,12 @@ import L from "leaflet";
 
 // カスタムマーカーアイコンの設定
 const customIcon = L.icon({
-  iconUrl: "https://leafletjs.com/examples/custom-icons/leaf-red.png",
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
   iconSize: [38, 38],
   iconAnchor: [19, 38],
   popupAnchor: [0, -38]
 });
+
 
 // マップの初期化
 const map = L.map("map").setView([33.18, 131.62], 16);

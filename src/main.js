@@ -79,9 +79,9 @@ const fetchRoadData = async (point1, point2) => {
         const coordinates = element.geometry.map((point) => [point.lat, point.lon]);
 
         // 既存のルートを削除
-        if (currentPolyline) {
+      /*  if (currentPolyline) {
           map.removeLayer(currentPolyline);
-        }
+        } */
 
         // デフォルトは青
         currentPolyline = L.polyline(coordinates, { color: "blue", weight: 3 }).addTo(map);

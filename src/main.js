@@ -12,9 +12,11 @@ L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
 }).addTo(map);
 
+// ポイントのリスト
 let points = [];
-let currentPolyline = null;
+let currentPolyline = null; // 現在のルートを保持
 
+// クリックされた地点が道路上かを判定
 const isOnRoad = async (lat, lng) => {
   const query = `
     [out:json];
@@ -25,13 +27,14 @@ const isOnRoad = async (lat, lng) => {
   try {
     const response = await fetch(url);
     const data = await response.json();
-    return data.elements.length > 0 ? data.elements[0] : null;
+    return data.elements.length > 0 ? data.elements[0] : null; // 最も近い道路を取得
   } catch (error) {
     console.error("エラーが発生しました:", error);
     return null;
   }
 };
 
+// マップをクリックしてポイントを追加
 map.on("click", async (e) => {
   const { lat, lng } = e.latlng;
   const road = await isOnRoad(lat, lng);
@@ -39,6 +42,7 @@ map.on("click", async (e) => {
     const marker = L.marker([lat, lng]).addTo(map);
     points.push({ lat, lng, road });
 
+    // ポイントが偶数個なら2点間の道路を描画
     if (points.length >= 2 && points.length % 2 === 0) {
       const prevPoint = points[points.length - 2];
       await fetchRoadData(prevPoint, { lat, lng, road });
@@ -49,6 +53,7 @@ map.on("click", async (e) => {
   }
 });
 
+// Overpass APIを利用して2点間の最短道路データを取得
 const fetchRoadData = async (point1, point2) => {
   const query = `
     [out:json];
@@ -63,7 +68,13 @@ const fetchRoadData = async (point1, point2) => {
     data.elements.forEach((element) => {
       if (element.type === "way" && element.geometry) {
         const coordinates = element.geometry.map((point) => [point.lat, point.lon]);
-        if (currentPolyline) map.removeLayer(currentPolyline);
+
+        // 既存のルートを削除
+        if (currentPolyline) {
+          map.removeLayer(currentPolyline);
+        }
+
+        // デフォルトは青
         currentPolyline = L.polyline(coordinates, { color: "blue", weight: 3 }).addTo(map);
       }
     });
@@ -72,6 +83,7 @@ const fetchRoadData = async (point1, point2) => {
   }
 };
 
+// 3段階評価のアンケートを表示
 const showSurvey = () => {
   const surveyContainer = document.createElement("div");
   surveyContainer.style.position = "fixed";
@@ -96,25 +108,24 @@ const showSurvey = () => {
   document.body.appendChild(surveyContainer);
 };
 
-const submitSurvey = (rating) => {
+// アンケートの回答を処理し、線の色を変更
+window.submitSurvey = (rating) => {
   console.log("選択された評価:", rating);
-  document.body.querySelector("div[style*='fixed']").remove();
-
-  let color;
-  switch (rating) {
-    case 1:
-      color = "red";
-      break;
-    case 2:
-      color = "blue";
-      break;
-    case 3:
-      color = "green";
-      break;
-  }
-
   if (currentPolyline) {
-    map.removeLayer(currentPolyline);
-    currentPolyline = L.polyline(currentPolyline.getLatLngs(), { color, weight: 3 }).addTo(map);
+    let color = "blue"; // デフォルトの色
+
+    if (rating === 1) {
+      color = "red"; // 悪い → 赤
+    } else if (rating === 2) {
+      color = "yellow"; // 普通 → 黄色
+    } else if (rating === 3) {
+      color = "green"; // 良い → 緑
+    }
+
+    // 現在の線の色を変更
+    currentPolyline.setStyle({ color });
+
+    // アンケートのUIを削除
+    document.body.querySelector("div[style*='fixed']").remove();
   }
 };

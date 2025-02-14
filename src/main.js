@@ -83,16 +83,19 @@ const showSurvey = () => {
   surveyContainer.style.left = "50%";
   surveyContainer.style.transform = "translateX(-50%)";
   surveyContainer.style.background = "white";
-  surveyContainer.style.padding = "10px";
+  surveyContainer.style.padding = "20px";
   surveyContainer.style.border = "1px solid #ccc";
-  surveyContainer.style.borderRadius = "5px";
+  surveyContainer.style.borderRadius = "10px";
   surveyContainer.style.zIndex = "1000";
+  surveyContainer.style.fontSize = "18px";
+  surveyContainer.style.textAlign = "center";
+  surveyContainer.style.width = "300px";
 
   surveyContainer.innerHTML = `
     <p>この経路はどうでしたか？</p>
-    <button onclick="submitSurvey(1)">悪い</button>
-    <button onclick="submitSurvey(2)">普通</button>
-    <button onclick="submitSurvey(3)">良い</button>
+    <button style="margin: 5px; padding: 10px; font-size: 16px;" onclick="submitSurvey(1)">悪い</button>
+    <button style="margin: 5px; padding: 10px; font-size: 16px;" onclick="submitSurvey(2)">普通</button>
+    <button style="margin: 5px; padding: 10px; font-size: 16px;" onclick="submitSurvey(3)">良い</button>
   `;
   document.body.appendChild(surveyContainer);
 };
